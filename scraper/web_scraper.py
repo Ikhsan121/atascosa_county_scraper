@@ -17,7 +17,6 @@ def initialize_driver(browser=config.BROWSER, headless=config.HEADLESS):
     Parameters:
         browser (str): The browser to use ("chrome", "firefox", or "edge"). Default is "chrome".
         headless (bool): Whether to run the browser in headless mode. Default is True.
-        download_dir (str): Path to the directory where downloaded files should be saved. Default is None.
 
     Returns:
         WebDriver: An initialized Selenium WebDriver instance.
