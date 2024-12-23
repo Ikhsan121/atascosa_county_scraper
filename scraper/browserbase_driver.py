@@ -36,7 +36,6 @@ class BrowserbaseConnection(RemoteConnection):
 def browser():
     session = bb.sessions.create(project_id=BROWSERBASE_PROJECT_ID)
     connection = BrowserbaseConnection(session.id, remote_server_url=session.selenium_remote_url)
-    print("session.id: ", session.id)
     driver = webdriver.Remote(
         command_executor=connection, options=webdriver.ChromeOptions()
     )
@@ -45,5 +44,4 @@ def browser():
         "Connected to Browserbase",
         f"{driver.name} version {driver.caps['browserVersion']}",
     )
-    print('driver returned from browser()')
     return driver

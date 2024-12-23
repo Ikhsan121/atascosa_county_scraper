@@ -15,11 +15,10 @@ def generate_metadata(link,driver):
     """Generate metadata as a JSON file."""
 
     driver.get(link)
-    print("link: ", link)
     # initialize fields
     grantors = []
     grantees = []
-    print(driver.page_source)
+
     # scrape fields
 
     # grantors
