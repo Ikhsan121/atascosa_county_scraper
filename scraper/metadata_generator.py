@@ -7,18 +7,19 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from scraper.download_manager import download_files
 from config import TIMEOUT
-from scraper.web_scraper import date_interval
+from scraper.web_scraper import main_page
 import json
 
 
-def generate_metadata(link):
+def generate_metadata(link,driver):
     """Generate metadata as a JSON file."""
-    driver = date_interval()
+
     driver.get(link)
+    print("link: ", link)
     # initialize fields
     grantors = []
     grantees = []
-
+    print(driver.page_source)
     # scrape fields
 
     # grantors
@@ -116,7 +117,6 @@ def generate_metadata(link):
 
     # downloading file
     download_files(driver=driver, image_urls=img_urls, filename=filename)
-    driver.quit()
 
 
 def save_metadata(metadata, file_name):

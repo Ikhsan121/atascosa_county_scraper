@@ -8,52 +8,15 @@ from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
 from selenium.webdriver.support import expected_conditions as EC
 import config
+from scraper.browserbase_driver import browser
 
-
-def initialize_driver(browser=config.BROWSER, headless=config.HEADLESS):
+def main_page():
     """
-    Initializes a Selenium WebDriver with automatic driver management.
-
-    Parameters:
-        browser (str): The browser to use ("chrome", "firefox", or "edge"). Default is "chrome".
-        headless (bool): Whether to run the browser in headless mode. Default is True.
-
-    Returns:
-        WebDriver: An initialized Selenium WebDriver instance.
+    To begin scraping, each attempt should first go to main page of the website.
+    This function using browser from Browserbase
+    :return:
     """
-
-    if browser == "chrome":
-        options = Options()
-        if headless:
-            options.add_argument("--headless")
-            options.add_argument("--disable-gpu")
-            options.add_argument("--no-sandbox")
-            options.add_argument("--disable-dev-shm-usage")
-
-        service = Service(ChromeDriverManager().install())
-        driver = webdriver.Chrome(service=service, options=options)
-
-    elif browser == "firefox":
-        from selenium.webdriver.firefox.options import Options as FirefoxOptions
-        options = FirefoxOptions()
-        if headless:
-            options.add_argument("--headless")
-
-        service = Service(GeckoDriverManager().install())
-        driver = webdriver.Firefox(service=service, options=options)
-
-    elif browser == "edge":
-        from selenium.webdriver.edge.options import Options as EdgeOptions
-        options = EdgeOptions()
-        if headless:
-            options.add_argument("--headless")
-
-        service = Service(EdgeChromiumDriverManager().install())
-        driver = webdriver.Edge(service=service, options=options)
-
-    else:
-        raise ValueError(f"Unsupported browser: {browser}")
-
+    driver = browser()
     try:
         # Open the website
         driver.get(config.BASE_URL)
@@ -76,13 +39,14 @@ def initialize_driver(browser=config.BROWSER, headless=config.HEADLESS):
         driver.quit()
         return None
 
-def date_interval(initial_date = config.INITIAL_DATE, final_date=config.FINAL_DATE):
+def date_interval(driver, initial_date = config.INITIAL_DATE, final_date=config.FINAL_DATE):
     """
+    :param driver: browser instance
     :param initial_date:format date is mm/dd/yyyy
     :param final_date:format date is mm/dd/yyyy
     :return: a page with list of files tobe downloaded
     """
-    driver = initialize_driver()
+
     # Wait for the date input field to appear and input initial date
     initial_date_dropdown = WebDriverWait(driver, config.TIMEOUT).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "table#cphNoMargin_f_ddcDateFiledFrom input"))
@@ -106,13 +70,13 @@ def date_interval(initial_date = config.INITIAL_DATE, final_date=config.FINAL_DA
     full_count.click()
     return driver
 
-def instrument_book_page_links():
+def instrument_book_page_links(driver):
     """
     this function return links to each pdf
     :return:
     """
     links = []
-    driver = date_interval()
+
     # Start the loop for pagination
     while True:
         # Wait for the table to load
@@ -150,7 +114,6 @@ def instrument_book_page_links():
         WebDriverWait(driver, config.TIMEOUT).until(
             EC.staleness_of(table)
         )
-    driver.quit()
     return links
 
 
