@@ -2,27 +2,49 @@ import os
 import re
 from time import sleep
 
+from selenium.common import UnexpectedAlertPresentException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import Select
+import config
 from scraper.download_manager import download_files
 from config import TIMEOUT
-from scraper.web_scraper import main_page
 import json
 
+def go_to_page_number(page, driver):
+    page_dropdown = WebDriverWait(driver, config.TIMEOUT).until(
+        EC.presence_of_element_located((By.XPATH, "//select[@id='cphNoMargin_cphNoMargin_OptionsBar1_ItemList']"))
+    )
+    # Create a Select object
+    select = Select(page_dropdown)
 
-def generate_metadata(link,driver):
+    # Select an option by value attribute
+    select.select_by_value(page)
+
+    # Now, find the selected option and click it
+    selected_option = WebDriverWait(driver, config.TIMEOUT).until(
+        EC.presence_of_element_located((By.XPATH, f"//select//option[@value='{page}']"))
+    )
+    selected_option.click()
+    print(f"page selected: ", page)
+
+    return driver
+
+
+def generate_metadata(page, link, driver):
     """Generate metadata as a JSON file."""
-
+    # go to page number where the links available
+    driver = go_to_page_number(page, driver)
     driver.get(link)
     # initialize fields
     grantors = []
     grantees = []
 
-    # scrape fields
-
     # grantors
-    table_grantors = driver.find_element(By.XPATH, '//table[@id="ctl00_cphNoMargin_f_oprTab_tmpl0_DataList11"]')
+    table_grantors = WebDriverWait(driver, config.TIMEOUT).until(EC.presence_of_element_located((
+        By.XPATH, '//table[@id="ctl00_cphNoMargin_f_oprTab_tmpl0_DataList11"]')))
+
     row_grantors = table_grantors.find_elements(By.TAG_NAME, 'tr')
     for row in row_grantors:
         # Remove the leading number and whitespace
@@ -87,7 +109,7 @@ def generate_metadata(link,driver):
 
     # Scroll down slowly
     scroll_pause_time = 0.5  # Pause time between scrolls (in seconds)
-    scroll_amount = 200  # Number of pixels to scroll at a time
+    scroll_amount = 300  # Number of pixels to scroll at a time
 
     # Get the total height of the page
     last_height = driver.execute_script("return document.body.scrollHeight")
@@ -115,7 +137,7 @@ def generate_metadata(link,driver):
         img_urls.append(updated_url)
 
     # downloading file
-    download_files(driver=driver, image_urls=img_urls, filename=filename)
+    download_files(image_urls=img_urls, filename=filename)
 
 
 def save_metadata(metadata, file_name):

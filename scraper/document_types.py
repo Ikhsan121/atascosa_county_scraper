@@ -1,7 +1,5 @@
 import re
 from time import sleep
-
-from scraper.browserbase_driver import browser
 from scraper.download_manager import download_files
 from config import TIMEOUT
 import json
@@ -19,14 +17,17 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import config
 from selenium.webdriver.support.ui import Select
+from scraper.web_scraper import selenium_driver, go_to_main_page
 
 """
-check if the scraper work for each document type
+check if the scraper work for each document type. run this module to check each document type can 
+be downloaded using download_manager and metadata_generator module
 """
 
-def docs_type_page(initial_date = config.INITIAL_DATE, final_date=config.FINAL_DATE, opt_dropdown=config.OPTION_LIST):
+def docs_type_page(opt_dropdown=config.OPTIONS_DROPDOWN, initial_date = config.INITIAL_DATE, final_date=config.FINAL_DATE):
+    driver = selenium_driver()
     for opt in opt_dropdown:
-        driver = browser()
+        driver = go_to_main_page(driver)
         # Wait for the date input field to appear and input initial date
         initial_date_dropdown = WebDriverWait(driver, config.TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "table#cphNoMargin_f_ddcDateFiledFrom input"))
@@ -62,7 +63,7 @@ def docs_type_page(initial_date = config.INITIAL_DATE, final_date=config.FINAL_D
         # download document and metadata
         download_document(driver=driver, opt=opt)
 
-        driver.quit()
+    driver.quit()
 
 
 def download_document(driver, opt):
@@ -78,6 +79,7 @@ def download_document(driver, opt):
         print('link: ', links[0])
         # generate metadata and document
         generate_metadata(driver, links[0])
+
     except NoSuchElementException:
         print(f"No file of {opt}")
 
@@ -260,3 +262,6 @@ def download_files(driver, image_urls, filename):
         shutil.rmtree(temp_dir)
     except Exception as e:
         print(f"Error deleting temporary folder: {e}")
+
+if __name__ == "__main__":
+    docs_type_page()
